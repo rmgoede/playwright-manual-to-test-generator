@@ -1,0 +1,36 @@
+# =========================
+# 🧪 Playwright & artifacts
+# =========================
+playwright-report/
+test-results/
+blob-report/
+artifacts/
+playwright/.cache/
+playwright/.auth/
+
+# =========================
+# 🧱 Deps / builds / logs
+# =========================
+node_modules/
+coverage/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# 🔐 Environment / secrets
+# =========================
+.env
+*.env
+!.env.example   # keep the example checked in
+
+# =========================
+# 💻 OS / editor junk
+# =========================
+.DS_Store
+.vscode/
+
+# Agent sandbox artifacts (keep plans & tests tracked)
+agents/ai-generated/artifacts/**

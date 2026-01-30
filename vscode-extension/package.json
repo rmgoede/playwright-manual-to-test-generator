@@ -1,0 +1,26 @@
+{
+  "name": "playwright-gen",
+  "displayName": "Playwright Test Generator",
+  "description": "Convert manual test steps into runnable Playwright tests using AI.",
+  "version": "0.0.1",
+  "publisher": "tekqa",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "playwrightGen.generate",
+          "title": "Playwright: Generate Test from Manual Steps"
+      }
+    ]
+  },
+  "scripts": {
+    "test": "echo \"No tests\""
+  },
+  "dependencies": {}
+}
