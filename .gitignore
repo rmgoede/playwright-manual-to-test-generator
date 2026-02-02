@@ -34,3 +34,7 @@ yarn-error.log*
 
 # Agent sandbox artifacts (keep plans & tests tracked)
 agents/ai-generated/artifacts/**
+
+# Ignore PRIVATE_ROADMAP.md)
+PRIVATE_ROADMAP.md
+
