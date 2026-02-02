@@ -1,3 +1,14 @@
+/**
+ * Playwright Manual-to-Test Generator (V1)
+ *
+ * © 2026 TekQA Consulting LLC
+ * All rights reserved.
+ *
+ * This software is provided for private/internal use only.
+ * Redistribution, resale, or public publication is prohibited
+ * without explicit written permission from the copyright holder.
+ */
+
 import readline from 'readline';
 import { generatePlaywrightTestFromSteps } from './generator.js';
 
