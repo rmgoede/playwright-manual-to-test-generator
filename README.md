@@ -34,15 +34,33 @@ If a scenario is not explicitly supported, the output is allowed to fail.
 
 ---
 
+## Before You Buy (Please Read)
+
+This tool is intentionally **limited**.
+
+You should purchase this only if:
+- You are comfortable running Playwright locally
+- You want **deterministic, rule-based output**
+- Your use case matches the validated scenarios below
+- You understand that unsupported flows may fail by design
+
+You should **not** purchase this if you expect:
+- Automatic selector discovery
+- Self-healing tests
+- General-purpose website support
+- Ongoing feature expansion within V1
+
+---
+
 ## Validated Scenarios (All Passing)
 
 The following scenarios have been **generated, saved, and executed successfully**:
 
-1. Login and add item to cart  
-2. Add multiple items and remove one  
-3. Checkout complete order  
-4. Negative login (locked-out user)  
-5. Cart badge state changes (0 → 1 → 2)  
+1. Login and add item to cart
+2. Add multiple items and remove one
+3. Checkout complete order
+4. Negative login (locked-out user)
+5. Cart badge state changes (0 → 1 → 2)
 6. Product sorting (low to high price)
 
 These scenarios define the **functional contract** of V1.
@@ -62,28 +80,51 @@ These scenarios define the **functional contract** of V1.
 
 ## Typical Demo Workflow
 
-1. Open an Excel sheet containing manual test steps  
-2. Copy steps (including a `Test Name:` line if desired)  
-3. Paste into the VS Code extension UI  
-4. Click **Generate**  
-5. Click **Save .spec.ts**  
+1. Open an Excel sheet containing manual test steps
+2. Copy steps (including a `Test Name:` line if desired)
+3. Paste into the VS Code extension UI
+4. Click **Generate**
+5. Click **Save .spec.ts**
 6. Run via:
-   ```bash
    npx playwright test tests/generated/<file>.spec.ts
-7. Observe pass/fail output 
-This workflow is intentional and part of the design
+7. Observe pass/fail output
+
+This workflow is intentional and part of the design.
 
 ---
 
-## Project Structure (Relevant Parts)
+## Project Structure (Relevant to Users)
+```
 playwright-gen-prototype/
-├── README.md
-├── generator.js           # Core generation logic (V1 locked)
-├── index.js
+├── README.md                # Product spec & usage contract
+├── generator.js             # Core generation logic (V1 locked)
+├── index.js                 # CLI / entry wiring
 ├── vscode-extension/
-│   └── extension.js       # VS Code UI integration (V1 locked)
-├── playwright-ai-starter/ # Playwright project used for execution
-└── package.json
+│   └── extension.js         # VS Code UI integration (V1 locked)
+├── playwright-ai-starter/   # Sample Playwright project for execution
+├── package.json
+└── package-lock.json
+```
+
+Most users will interact only with:
+- The VS Code extension UI
+- The generated `.spec.ts` output
+- Their own Playwright project
+
+---
+
+## What You Get
+
+Purchasing this tool provides:
+
+- Access to the private GitHub repository
+- The full V1 generator source code
+- VS Code extension for local use
+- Documentation defining supported behavior
+- Future V1 bug fixes (if any)
+
+This is a **local, offline tool**.
+There are no servers, accounts, or telemetry.
 
 ---
 
@@ -113,12 +154,28 @@ This is **not** a low-code testing product.
 
 ## License / Usage
 
-Internal / experimental tooling.  
-No guarantees beyond the validated scenarios listed above.
+Internal / experimental tooling.
+All rights reserved.
+
+Not licensed for redistribution or commercial use without explicit permission.
 
 ---
 
-## ✅ Playwright Generator — V1 Lock Checklist
+## Support & Refunds
+
+Support is provided via email on a **best-effort basis**.
+
+If the tool does **not perform as described in this README** for supported scenarios,
+a refund may be requested within **7 days**.
+
+Refunds are not provided for:
+- Unsupported websites or flows
+- Feature requests outside V1 scope
+- Modified or repackaged versions of the code
+
+---
+
+## Playwright Generator — V1 Lock Checklist
 
 V1 is considered **DONE** when all are true:
 
@@ -133,35 +190,27 @@ V1 is considered **DONE** when all are true:
 ### Code quality / correctness
 
 - [ ] Output is only valid TypeScript (no markdown, no prose)
-- [ ] Exactly one `test('...', async ({ page }) => { ... })`
-- [ ] Uses locator actions correctly (`locator.click()`, `locator.fill()`)
-- [ ] Never does invalid calls like `page.click(locator)`
-- [ ] Assertions use `await expect(...)`  
-      (no `expect(count).toBe()` on raw numbers)
+- [ ] Exactly one test('...', async ({ page }) => { ... })
+- [ ] Uses locator actions correctly (locator.click(), locator.fill())
+- [ ] Never does invalid calls like page.click(locator)
+- [ ] Assertions use await expect(...)
 
 ### Selector strategy (V1 rules)
 
-- [ ] Prefers stable selectors (`getByTestId`, `getByRole`, `getByLabel`)
-- [ ] Avoids `.nth()` unless it’s a true last resort
-- [ ] When product names are specified, targets those products explicitly  
-      (not first/second random buttons)
+- [ ] Prefers stable selectors (getByTestId, getByRole, getByLabel)
+- [ ] Avoids .nth() unless it’s a true last resort
+- [ ] When product names are specified, targets those products explicitly
 
 ### SauceDemo baked-in rules validated
 
-- [ ] Login fields use test ids:
-  - `username`
-  - `password`
-  - `login-button`
-- [ ] Page header uses `page.getByTestId('title')`
-- [ ] Cart link uses `page.getByTestId('shopping-cart-link')`
-- [ ] Checkout step-one fields use:
-  - `firstName`
-  - `lastName`
-  - `postalCode`
-- [ ] Cart badge count uses `.shopping_cart_badge`:
-  - Empty state → `toHaveCount(0)`
-  - After 1 add → `toHaveText('1')`
-  - After 2 adds → `toHaveText('2')`
+- [ ] Login fields use test ids: username, password, login-button
+- [ ] Page header uses page.getByTestId('title')
+- [ ] Cart link uses page.getByTestId('shopping-cart-link')
+- [ ] Checkout step-one fields use firstName, lastName, postalCode
+- [ ] Cart badge count uses .shopping_cart_badge:
+  - Empty → toHaveCount(0)
+  - After 1 add → toHaveText('1')
+  - After 2 adds → toHaveText('2')
 
 ### Validation suite (must all pass)
 
@@ -169,14 +218,13 @@ V1 is considered **DONE** when all are true:
 - [ ] Scenario 2: add 2 items → remove 1 → verify count (PASS)
 - [ ] Scenario 3: checkout complete order (PASS)
 - [ ] Scenario 4: locked-out user shows error (PASS)
-- [ ] Scenario 5: cart badge increments `0 → 1 → 2` (PASS)
+- [ ] Scenario 5: cart badge increments 0 → 1 → 2 (PASS)
 
-### “Freeze V1” rules (contract with yourself)
+### Freeze V1 rules (contract with yourself)
 
 - [ ] Any new functionality goes into **V1.5+**
 - [ ] Generator instructions may not change without README update
-- [ ] SauceDemo rules stay clearly labeled as **app-specific**
-
+- [ ] SauceDemo rules stay clearly labeled as app-specific
 ---
 
 All rights reserved. Not licensed for redistribution or commercial use without permission.
