@@ -101,7 +101,6 @@ playwright-gen-prototype/
 ├── index.js                 # CLI / entry wiring
 ├── vscode-extension/
 │   └── extension.js         # VS Code UI integration (V1 locked)
-├── playwright-ai-starter/   # Sample Playwright project for execution
 ├── package.json
 └── package-lock.json
 ```
