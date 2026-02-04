@@ -276,7 +276,7 @@ V1 is considered **DONE** when all are true:
 - [ ] Scenario 4: locked-out user shows error (PASS)
 - [ ] Scenario 5: cart badge increments 0 → 1 → 2 (PASS)
 
-### Freeze V1 rules (contract with yourself)
+### Freeze V1 Rules (V1 Scope & Change Control)
 
 - [ ] Any new functionality goes into **V1.5+**
 - [ ] Generator instructions may not change without README update
