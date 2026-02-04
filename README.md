@@ -6,6 +6,17 @@ This project is intentionally narrow in scope. It is designed to be **predictabl
 
 ---
 
+## Prerequisites
+
+- VS Code
+- Node.js (LTS recommended)
+- An existing Playwright project
+  - If needed: `npm init playwright@latest`
+- Playwright installed (`npx playwright install`)
+
+
+---
+
 ## What This Tool Does (V1 Scope — Frozen)
 
 - Converts **copied/pasted manual test steps** into:
@@ -67,6 +78,46 @@ These scenarios define the **functional contract** of V1.
 
 ---
 
+## Quick Start (5 Minutes)
+1. Clone the repository:
+```bash
+    git clone <repo-url>
+    cd playwright-gen-prototype
+```
+  (In GitHub, click **Code** → copy the HTTPS URL)
+
+2. Install dependencies:
+```bash
+    npm install
+```
+3. Open the project in VS Code:
+```bash
+    code .
+```
+4. Start the VS Code extension:
+
+    - Press F5 to launch the extension in a new Extension Development Host window
+
+    - In that new window, open **your Playwright project** (the repo where you will run tests)
+    
+    
+5. Generate a test:
+   - Paste your manual test steps
+   - Click **Generate**
+   - Click **Save .spec.ts**
+   - The generated `.spec.ts` file is saved into your Playwright project under the generator’s configured output directory
+
+6. Run via:
+   ```bash
+   npx playwright test <path-to-the-generated-spec-file>
+   ```
+   - Use the relative path to the generated `.spec.ts` file in your Playwright project.
+
+
+If these steps complete without error, your setup is correct.
+
+---
+
 ## Guaranteed Output Properties
 
 - Valid Playwright API usage only
@@ -79,14 +130,17 @@ These scenarios define the **functional contract** of V1.
 ---
 
 ## Typical Demo Workflow
-
+This describes the intended usage pattern once the extension is running.
 1. Open an Excel sheet containing manual test steps
 2. Copy steps (including a `Test Name:` line if desired)
 3. Paste into the VS Code extension UI
 4. Click **Generate**
 5. Click **Save .spec.ts**
 6. Run via:
-   npx playwright test tests/generated/<file>.spec.ts
+
+   npx playwright test `<path-to-the-generated-spec-file>`
+  - (Use the relative path to the generated `.spec.ts` file in your Playwright project.)
+
 7. Observe pass/fail output
 
 This workflow is intentional and part of the design.
@@ -162,7 +216,10 @@ Not licensed for redistribution or commercial use without explicit permission.
 
 ## Support & Refunds
 
-Support is provided via email on a **best-effort basis**.
+Support is provided on a **best-effort basis**:
+- Open a GitHub Issue in this repository
+- Or contact via the email provided at purchase
+
 
 If the tool does **not perform as described in this README** for supported scenarios,
 a refund may be requested within **7 days**.
