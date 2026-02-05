@@ -31,7 +31,7 @@ The system is designed to be:
 **Key traits:**
 - Rule-based (not heuristic)
 - No DOM inspection
-- No AI reasoning beyond explicit instructions
+- No autonomous AI reasoning beyond explicit, rule-bound instructions
 - No retries or timing logic
 
 ---

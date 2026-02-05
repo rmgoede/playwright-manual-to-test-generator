@@ -1,6 +1,9 @@
 # Roadmap — Playwright Manual-to-Test Generator
 
-This is a high-level product roadmap. V1 scope is intentionally narrow and frozen.
+This roadmap communicates direction and design intent only.
+It does not represent delivery guarantees or timelines.
+
+V1 scope is intentionally narrow and frozen.
 
 ---
 
@@ -14,7 +17,7 @@ This is a high-level product roadmap. V1 scope is intentionally narrow and froze
 
 ---
 
-## Next: V1.5 (Offline DOM Snapshot)
+## Potential: V1.5 (Offline DOM Snapshot)
 
 Goal: improve selector accuracy without live browser control.
 
@@ -25,7 +28,7 @@ Possible approach:
 
 ---
 
-## Future: V2 (Live DOM + Playwright Integration)
+## Long-Term: V2 (Live DOM + Playwright Integration)
 
 Goal: highest reliability and maintenance reduction.
 
