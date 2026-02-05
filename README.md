@@ -13,6 +13,7 @@ This project is intentionally narrow in scope. It is designed to be **predictabl
 - An existing Playwright project
   - If needed: `npm init playwright@latest`
 - Playwright installed (`npx playwright install`)
+- An OpenAI API key (API usage billed directly by OpenAI)
 
 
 ---
@@ -54,6 +55,7 @@ You should purchase this only if:
 - You want **deterministic, rule-based output**
 - Your use case matches the validated scenarios below
 - You understand that unsupported flows may fail by design
+- You are able to supply your own OpenAI API key for local execution
 
 You should **not** purchase this if you expect:
 - Automatic selector discovery
