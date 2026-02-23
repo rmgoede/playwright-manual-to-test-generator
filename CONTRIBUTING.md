@@ -11,7 +11,7 @@ It is intentionally **not** open-source at this stage.
 - **Current version:** V1 (Frozen)
 - **Scope:** Deterministic manual-step → Playwright test generation
 - **Audience:** Internal use, product exploration, and controlled demos
-- **License:** Not yet defined (all rights reserved)
+- **License:** MIT
 
 V1 is considered **complete and locked**.  
 Any future work must follow the versioning rules below.
@@ -47,7 +47,7 @@ If a feature makes the system “smarter” but less predictable, it does **not*
 
 ## Intellectual Property
 
-All code, documentation, and concepts in this repository are proprietary.
+All code and documentation in this repository are provided under the MIT License. See LICENSE.
 
 - Do not redistribute
 - Do not publish derivative work

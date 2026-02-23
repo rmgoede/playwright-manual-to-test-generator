@@ -46,22 +46,19 @@ If a scenario is not explicitly supported, the output is allowed to fail.
 
 ---
 
-## Before You Buy (Please Read)
+## Who This Is For
 
-This tool is intentionally **limited**.
+This tool is a good fit if you:
+- Are comfortable running Playwright locally
+- Want a repeatable workflow for generating a Playwright test draft from written steps
+- Are OK refining selectors after inspecting the real DOM (expected by design)
+- Can supply your own OpenAI API key for local execution (`OPENAI_API_KEY`)
 
-You should purchase this only if:
-- You are comfortable running Playwright locally
-- You want **deterministic, rule-based output**
-- Your use case matches the validated scenarios below
-- You understand that unsupported flows may fail by design
-- You are able to supply your own OpenAI API key for local execution
-
-You should **not** purchase this if you expect:
-- Automatic selector discovery
-- Self-healing tests
-- General-purpose website support
-- Ongoing feature expansion within V1
+This tool is **not** a fit if you expect:
+- DOM auto-discovery or scraping
+- Self-healing automation
+- A SaaS / hosted product
+- Guaranteed “first run pass” on arbitrary websites
 
 ---
 
@@ -168,18 +165,12 @@ Most users will interact only with:
 
 ---
 
-## What You Get
+## What You Get (Open-Source)
 
-Purchasing this tool provides:
-
-- Access to the private GitHub repository
-- The full V1 generator source code
+- Generator core source code
 - VS Code extension for local use
-- Documentation defining supported behavior
-- Future V1 bug fixes (if any)
-
-This is a **local, offline tool**.
-There are no servers, accounts, or telemetry.
+- Documentation defining supported behavior and scope
+- A deterministic workflow: paste → generate → save → run
 
 ---
 
@@ -207,29 +198,16 @@ This is **not** a low-code testing product.
 
 ---
 
-## License / Usage
+## License
 
-Internal / experimental tooling.
-All rights reserved.
-
-Not licensed for redistribution or commercial use without explicit permission.
+MIT License. See `LICENSE`.
 
 ---
 
-## Support & Refunds
+## Support
 
-Support is provided on a **best-effort basis**:
-- Open a GitHub Issue in this repository
-- Or contact via the email provided at purchase
-
-
-If the tool does **not perform as described in this README** for supported scenarios,
-a refund may be requested within **7 days**.
-
-Refunds are not provided for:
-- Unsupported websites or flows
-- Feature requests outside V1 scope
-- Modified or repackaged versions of the code
+Best-effort support via GitHub Issues.
+PRs are welcome.
 
 ---
 
@@ -285,4 +263,3 @@ V1 is considered **DONE** when all are true:
 - [ ] SauceDemo rules stay clearly labeled as app-specific
 ---
 
-All rights reserved. Not licensed for redistribution or commercial use without permission.
