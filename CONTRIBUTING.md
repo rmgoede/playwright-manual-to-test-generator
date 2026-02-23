@@ -1,8 +1,8 @@
-# Contributing Guidelines (Private)
+# Contributing Guidelines
 
-This repository is a **private, experimental product workspace**.
+Thanks for your interest in improving the Playwright Manual-to-Test Generator.
 
-It is intentionally **not** open-source at this stage.
+This project is open-source under the MIT License and welcomes feedback, issues, and contributions that align with the project's design philosophy and scope.
 
 ---
 
@@ -10,7 +10,7 @@ It is intentionally **not** open-source at this stage.
 
 - **Current version:** V1 (Frozen)
 - **Scope:** Deterministic manual-step → Playwright test generation
-- **Audience:** Internal use, product exploration, and controlled demos
+- **Audience:** QA engineers, test automation engineers, and teams migrating manual tests to Playwright
 - **License:** MIT
 
 V1 is considered **complete and locked**.  
@@ -45,25 +45,13 @@ If a feature makes the system “smarter” but less predictable, it does **not*
 
 ---
 
-## Intellectual Property
-
-All code and documentation in this repository are provided under the MIT License. See LICENSE.
-
-- Do not redistribute
-- Do not publish derivative work
-- Do not extract logic for external tools
-- Do not share implementation details publicly
-
-External discussions should remain **conceptual**, not technical.
-
----
-
 ## Contributions
 
 At this stage:
-- Contributions are limited to the repository owner
-- External PRs are not accepted
-- Feedback is captured in notes or roadmap documents, not issues
+
+- Issues and feedback are welcome
+- Feature direction is controlled by the repository owner
+- Pull requests may not be accepted unless aligned with the project roadmap
 
 This may change in later versions.
 
