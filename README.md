@@ -3,7 +3,7 @@
 A deterministic internal tool that converts **manual test steps (plain text)** into a **single, immediately runnable Playwright TypeScript test**.
 
 This project is intentionally narrow in scope. It is designed to be **predictable, boring, and reliable** — not “smart.”
-
+![Playwright Manual-to-Test Generator Demo](DemoFinal.gif)
 ---
 
 ## Prerequisites
