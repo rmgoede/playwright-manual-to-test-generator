@@ -1,3 +1,5 @@
+![GitHub stars](https://img.shields.io/github/stars/rmgoede/playwright-manual-to-test-generator?style=social)
+![License](https://img.shields.io/github/license/rmgoede/playwright-manual-to-test-generator)
 # Playwright Manual-to-Test Generator (V1)
 
 A deterministic internal tool that converts **manual test steps (plain text)** into a **single, immediately runnable Playwright TypeScript test**.
