@@ -3,7 +3,9 @@
 A deterministic internal tool that converts **manual test steps (plain text)** into a **single, immediately runnable Playwright TypeScript test**.
 
 This project is intentionally narrow in scope. It is designed to be **predictable, boring, and reliable** — not “smart.”
+## Screenshots / Demo
 ![Playwright Manual-to-Test Generator Demo](DemoFinal.gif)
+*Demo: Copy manual test steps → generate runnable Playwright test → save → execute.*
 ---
 
 ## Prerequisites
@@ -15,6 +17,13 @@ This project is intentionally narrow in scope. It is designed to be **predictabl
 - Playwright installed (`npx playwright install`)
 - An OpenAI API key (API usage billed directly by OpenAI)
 
+### Why bring your own OpenAI key?
+
+- You control API costs
+- No vendor lock-in
+- No usage markup
+- No data stored by this tool
+- Typical cost per generation: a few cents
 
 ---
 
