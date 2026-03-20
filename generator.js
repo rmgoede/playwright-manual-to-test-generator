@@ -74,7 +74,7 @@ function parseManualInput(rawText) {
   return { testName, stepsText: remaining.join('\n').trim() };
 }
 
-async function callLLM(prompt) {
+async function callLLM(prompt, systemContent) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error(
       'OPENAI_API_KEY is not set. Make sure .env exists in the project root.'
@@ -87,8 +87,7 @@ async function callLLM(prompt) {
     messages: [
       {
         role: 'system',
-        content:
-          'You are a senior QA Automation Engineer and Playwright expert. Return ONLY valid TypeScript Playwright test code with no explanation.',
+        content: systemContent,
       },
       { role: 'user', content: prompt },
     ],
@@ -195,6 +194,68 @@ SAUCEDEMO ASSERTIONS:
 Now generate the Playwright TypeScript spec.
 `;
 
+const JSON_SCHEMA_INSTRUCTIONS = `
+You are a deterministic Playwright test planning engine.
+
+Convert the provided manual test steps into a SINGLE structured JSON document.
+
+STRICT OUTPUT RULES:
+- Output JSON only
+- Do NOT output markdown
+- Do NOT output explanations
+- Do NOT output commentary
+- Do NOT output code fences
+- Do NOT output Playwright TypeScript
+- Do NOT invent fields outside the schema
+- Do NOT omit required fields
+- Return exactly one test per input
+- Preserve logical execution order of steps
+
+Each step must be either:
+- an action
+- or an assertion
+Never both.
+
+SELECTOR STRATEGY PRIORITY:
+1. testId
+2. role
+3. label
+4. css
+
+SCHEMA:
+{
+  "schema_version": "1.5.0",
+  "test_name": "string",
+  "url": "string",
+  "steps": [
+    {
+      "type": "action" | "assertion",
+      "description": "string",
+      "selector": {
+        "strategy": "testId" | "role" | "label" | "css",
+        "value": "string"
+      } | null,
+      "action": "goto" | "fill" | "click" | "select" | null,
+      "value": "string | null",
+      "assertion": {
+        "method": "toHaveText" | "toBeVisible" | "toHaveURL" | "toHaveCount" | "pricesSortedAscending",
+        "expected": "string | number | boolean | null"
+      } | null
+    }
+  ]
+}
+
+OUTPUT REQUIREMENTS:
+- First action must be "goto"
+- "goto" must use the top-level "url"
+- Selector required for actions except "goto"
+- Assertion required for assertion steps
+- JSON must be valid and parseable
+
+Return ONLY JSON.
+`;
+
+
 /**
  * Convert manual test steps (plain text) into a single Playwright TS test.
  */
@@ -211,8 +272,31 @@ MANUAL_STEPS:
 ${stepsText}
 `;
 
-  const code = await callLLM(prompt);
+  const code = await callLLM(
+  prompt,
+  'You are a senior QA Automation Engineer and Playwright expert. Return ONLY valid TypeScript Playwright test code with no explanation.'
+);
   return code.trim();
+}
+
+export async function generatePlaywrightSchemaFromSteps(rawStepsText) {
+  const { testName, stepsText } = parseManualInput(rawStepsText);
+
+  const prompt = `
+${JSON_SCHEMA_INSTRUCTIONS}
+
+TEST_NAME:
+${testName || '(none)'}
+
+MANUAL_STEPS:
+${stepsText}
+`;
+
+  const jsonOutput = await callLLM(
+  prompt,
+  'You are a deterministic Playwright test planning engine. Return ONLY valid JSON that matches the required schema with no explanation.'
+);
+  return jsonOutput.trim();
 }
 
 export default generatePlaywrightTestFromSteps;
