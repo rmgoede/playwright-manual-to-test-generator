@@ -222,6 +222,22 @@ SELECTOR STRATEGY PRIORITY:
 3. label
 4. css
 
+KNOWN APPLICATION RULES:
+
+If a known application has stable selector mappings, prefer those mappings over generic inference.
+
+Example: SauceDemo
+- username field → testId "username"
+- password field → testId "password"
+- login button → testId "login-button"
+- cart badge → css ".shopping_cart_badge"
+- add to cart for product "<name>" → testId "add-to-cart-<slug>"
+
+Where <slug> is lowercase with spaces replaced by hyphens.
+
+STRICT RULE:
+Do NOT use label or css when a known stable testId exists.
+
 SCHEMA:
 {
   "schema_version": "1.5.0",
@@ -239,7 +255,11 @@ SCHEMA:
       "value": "string | null",
       "assertion": {
         "method": "toHaveText" | "toBeVisible" | "toHaveURL" | "toHaveCount" | "pricesSortedAscending",
-        "expected": "string | number | boolean | null"
+        "expected": "string | number | boolean | null",
+        "selector": {
+          "strategy": "testId" | "role" | "label" | "css",
+          "value": "string"
+        } | null
       } | null
     }
   ]
