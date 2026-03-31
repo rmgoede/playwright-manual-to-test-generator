@@ -270,6 +270,7 @@ OUTPUT REQUIREMENTS:
 - "goto" must use the top-level "url"
 - Selector required for actions except "goto"
 - Assertion required for assertion steps
+- For assertion steps, use assertion.selector for the target locator and set the top-level selector field to null
 - JSON must be valid and parseable
 
 Return ONLY JSON.
