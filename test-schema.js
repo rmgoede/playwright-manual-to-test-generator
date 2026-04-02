@@ -1,4 +1,5 @@
 import { generatePlaywrightSchemaFromSteps } from './generator.js';
+import { renderPlaywrightTestFromSchema } from './renderer.js';
 
 const testInput = `
 Test Name: Add item to cart
@@ -21,6 +22,12 @@ async function run() {
     console.log('\n=== PARSED JSON ===\n');
     const parsed = JSON.parse(result);
     console.log(parsed);
+
+    const rendered = renderPlaywrightTestFromSchema(parsed);
+
+    console.log('\n=== RENDERED PLAYWRIGHT ===\n');
+    console.log(rendered);
+
   } catch (err) {
     console.error('ERROR:', err);
   }
