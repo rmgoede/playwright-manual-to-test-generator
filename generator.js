@@ -224,15 +224,16 @@ SELECTOR STRATEGY PRIORITY:
 
 KNOWN APPLICATION RULES:
 
-If a known application has stable selector mappings, prefer those mappings over generic inference.
+If a known application has stable selector mappings, you MUST use those mappings and MUST NOT fall back to generic selector strategies.
 
-Example: SauceDemo
+Current validated known-application mapping: SauceDemo
 - username field → testId "username"
 - password field → testId "password"
 - login button → testId "login-button"
 - products title → testId "title"
 - cart badge → css ".shopping_cart_badge"
 - add to cart for product "<name>" → testId "add-to-cart-<slug>"
+- sort dropdown (product sort control) → role "combobox"
 
 Where <slug> is lowercase with spaces replaced by hyphens.
 

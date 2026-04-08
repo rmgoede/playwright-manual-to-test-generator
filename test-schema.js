@@ -2,14 +2,13 @@ import { generatePlaywrightSchemaFromSteps } from './generator.js';
 import { renderPlaywrightTestFromSchema } from './renderer.js';
 
 const testInput = `
-Test Name: Verify products sorted low to high
+Test Name: Login and verify products title visible
 
 1. Go to https://www.saucedemo.com
 2. Enter username standard_user
 3. Enter password secret_sauce
 4. Click Login
-5. Sort products by price low to high
-6. Verify prices are sorted ascending
+5. Verify Products is visible
 `;
 
 async function run() {

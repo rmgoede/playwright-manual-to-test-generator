@@ -13,6 +13,18 @@ function renderLocator(selector) {
 }
 
 export function renderPlaywrightTestFromSchema(schema) {
+  if (!schema.steps || !Array.isArray(schema.steps)) {
+    throw new Error('Invalid schema: steps must be an array');
+  }
+
+    if (schema.steps.length === 0) {
+    throw new Error('Invalid schema: steps must not be empty');
+  }
+  
+  if (!schema.url || typeof schema.url !== 'string') {
+    throw new Error('Invalid schema: url must be a string');
+  }
+
   const lines = [];
 
   // import
