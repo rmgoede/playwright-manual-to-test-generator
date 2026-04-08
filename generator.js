@@ -230,6 +230,7 @@ Example: SauceDemo
 - username field → testId "username"
 - password field → testId "password"
 - login button → testId "login-button"
+- products title → testId "title"
 - cart badge → css ".shopping_cart_badge"
 - add to cart for product "<name>" → testId "add-to-cart-<slug>"
 

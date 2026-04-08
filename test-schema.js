@@ -2,14 +2,14 @@ import { generatePlaywrightSchemaFromSteps } from './generator.js';
 import { renderPlaywrightTestFromSchema } from './renderer.js';
 
 const testInput = `
-Test Name: Add item to cart
+Test Name: Verify products sorted low to high
 
 1. Go to https://www.saucedemo.com
 2. Enter username standard_user
 3. Enter password secret_sauce
-4. Click login
-5. Add Sauce Labs Backpack to cart
-6. Verify cart badge shows 1
+4. Click Login
+5. Sort products by price low to high
+6. Verify prices are sorted ascending
 `;
 
 async function run() {

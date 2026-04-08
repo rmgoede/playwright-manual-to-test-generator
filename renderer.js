@@ -48,6 +48,14 @@ export function renderPlaywrightTestFromSchema(schema) {
           );
         }
       }
+            if (step.action === 'select') {
+        const selector = step.selector;
+        if (selector?.strategy === 'role' && selector.value === 'combobox') {
+          lines.push(
+            `  await page.getByRole('combobox').selectOption({ label: '${step.value}' });`
+          );
+        }
+      }
     }
 
     // ASSERTIONS
@@ -76,6 +84,32 @@ export function renderPlaywrightTestFromSchema(schema) {
             `  await expect(${locator}).toBeVisible();`
           );
         }
+      }
+
+      if (
+        assertion?.method === 'toHaveURL' &&
+        assertion.selector === null
+      ) {
+        lines.push(
+          `  await expect(page).toHaveURL('${assertion.expected}');`
+        );
+      }
+      if (
+        assertion?.method === 'toHaveCount' &&
+        assertion.selector
+      ) {
+        const locator = renderLocator(assertion.selector);
+        if (locator) {
+          lines.push(
+            `  await expect(${locator}).toHaveCount(${assertion.expected});`
+          );
+        }
+      }
+      if (assertion?.method === 'pricesSortedAscending') {
+        lines.push(`  const priceTexts = await page.locator('.inventory_item_price').allTextContents();`);
+        lines.push(`  const prices = priceTexts.map(text => Number(text.replace('$', '')));`);
+        lines.push(`  const sortedPrices = [...prices].sort((a, b) => a - b);`);
+        lines.push(`  expect(prices).toEqual(sortedPrices);`);
       }
     }
   }
