@@ -111,6 +111,21 @@ async function callLLM(prompt) {
 }
 
 // ------------------------
+// V1.5 module loader (dynamic import for ESM modules)
+// ------------------------
+async function loadV15Modules() {
+  const generatorModule = await import('../generator.js');
+  const rendererModule = await import('../renderer.js');
+
+  return {
+    generatePlaywrightSchemaFromSteps:
+      generatorModule.generatePlaywrightSchemaFromSteps,
+    renderPlaywrightTestFromSchema:
+      rendererModule.renderPlaywrightTestFromSchema,
+  };
+}
+
+// ------------------------
 // Unified generator instructions (tightened + checkout fix + cart badge fix)
 // ------------------------
 const GENERATOR_INSTRUCTIONS = `
@@ -425,11 +440,23 @@ function activate(context) {
         async (message) => {
           if (message.command === 'generate') {
             try {
-              const code = await generatePlaywrightTestFromSteps(message.text || '');
+              const {
+                generatePlaywrightSchemaFromSteps,
+                renderPlaywrightTestFromSchema,
+              } = await loadV15Modules();
+
+              const schema = await generatePlaywrightSchemaFromSteps(
+                message.text || ''
+              );
+              const parsed = JSON.parse(schema);
+              const code = renderPlaywrightTestFromSchema(parsed);
+
               panel.webview.postMessage({ command: 'generated', code });
             } catch (err) {
               console.error('Error generating test from extension:', err);
-              vscode.window.showErrorMessage('Error generating Playwright test. Check console for details.');
+              vscode.window.showErrorMessage(
+                'Error generating Playwright test. Check console for details.'
+              );
               panel.webview.postMessage({
                 command: 'generated',
                 code: "import { test, expect } from '@playwright/test';\n\ntest('generation error', async ({ page }) => {\n  await page.goto('about:blank');\n  await expect(page).toHaveURL(/about:blank/);\n});",
@@ -440,7 +467,9 @@ function activate(context) {
               await saveGeneratedTestToFile(message.code || '');
             } catch (err) {
               console.error('Error saving generated test:', err);
-              vscode.window.showErrorMessage('Error saving generated test file. See console for details.');
+              vscode.window.showErrorMessage(
+                'Error saving generated test file. See console for details.'
+              );
             }
           } else if (message.command === 'info') {
             if (message.message) vscode.window.showInformationMessage(message.message);

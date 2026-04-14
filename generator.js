@@ -9,6 +9,11 @@
 // Playwright Manual-to-Test Generator — V1 LOCKED
 // ==================================================
 //
+// NOTE:
+// This file supports both:
+// - V1: Manual Steps → LLM → Playwright Test
+// - V1.5: Manual Steps → LLM → Structured JSON → Renderer → Playwright Test
+//
 // V1 SCOPE (FROZEN):
 // - Converts manual test steps (plain text) into
 //   a SINGLE Playwright TypeScript test file
@@ -38,8 +43,6 @@
 // V1.5+ and be documented in README.md
 // ==================================================
 
-// generator.js (ESM)
-
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
@@ -49,6 +52,11 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+/**
+ * Extract:
+ * - optional "Test Name: ..." header
+ * - remaining manual steps as plain text
+ */
 function parseManualInput(rawText) {
   const lines = (rawText || '').split(/\r?\n/);
   let testName = '';
@@ -74,6 +82,11 @@ function parseManualInput(rawText) {
   return { testName, stepsText: remaining.join('\n').trim() };
 }
 
+/**
+ * Single OpenAI call boundary used by both:
+ * - V1 direct code generation
+ * - V1.5 structured JSON generation
+ */
 async function callLLM(prompt, systemContent) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error(
@@ -95,6 +108,10 @@ async function callLLM(prompt, systemContent) {
 
   return response.choices?.[0]?.message?.content || '';
 }
+
+// ===============================
+// V1: Direct Playwright Generation
+// ===============================
 
 const GENERATOR_INSTRUCTIONS = `
 You are a senior QA Automation Engineer specializing in Playwright + TypeScript.
@@ -194,6 +211,10 @@ SAUCEDEMO ASSERTIONS:
 Now generate the Playwright TypeScript spec.
 `;
 
+// ===============================
+// V1.5: Structured Output Mode
+// ===============================
+
 const JSON_SCHEMA_INSTRUCTIONS = `
 You are a deterministic Playwright test planning engine.
 
@@ -280,9 +301,9 @@ OUTPUT REQUIREMENTS:
 Return ONLY JSON.
 `;
 
-
 /**
- * Convert manual test steps (plain text) into a single Playwright TS test.
+ * V1 mode:
+ * Convert manual steps directly into a runnable Playwright TypeScript spec.
  */
 export async function generatePlaywrightTestFromSteps(rawStepsText) {
   const { testName, stepsText } = parseManualInput(rawStepsText);
@@ -298,12 +319,17 @@ ${stepsText}
 `;
 
   const code = await callLLM(
-  prompt,
-  'You are a senior QA Automation Engineer and Playwright expert. Return ONLY valid TypeScript Playwright test code with no explanation.'
-);
+    prompt,
+    'You are a senior QA Automation Engineer and Playwright expert. Return ONLY valid TypeScript Playwright test code with no explanation.'
+  );
+
   return code.trim();
 }
 
+/**
+ * V1.5 mode:
+ * Convert manual steps into a structured JSON contract consumed by the renderer.
+ */
 export async function generatePlaywrightSchemaFromSteps(rawStepsText) {
   const { testName, stepsText } = parseManualInput(rawStepsText);
 
@@ -318,9 +344,10 @@ ${stepsText}
 `;
 
   const jsonOutput = await callLLM(
-  prompt,
-  'You are a deterministic Playwright test planning engine. Return ONLY valid JSON that matches the required schema with no explanation.'
-);
+    prompt,
+    'You are a deterministic Playwright test planning engine. Return ONLY valid JSON that matches the required schema with no explanation.'
+  );
+
   return jsonOutput.trim();
 }
 

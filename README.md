@@ -10,6 +10,31 @@ This project is intentionally narrow in scope. It is designed to be **predictabl
 *Demo: Copy manual test steps → generate runnable Playwright test → save → execute.*
 ---
 
+## Example
+
+### Input (Manual Steps)
+
+1. Go to https://www.saucedemo.com  
+2. Enter username standard_user  
+3. Enter password secret_sauce  
+4. Click Login  
+5. Verify Products is visible  
+
+### Output (Generated Playwright Test)
+
+```ts
+import { test, expect } from '@playwright/test';
+
+test('Login and verify products title visible', async ({ page }) => {
+  await page.goto('https://www.saucedemo.com');
+  await page.getByTestId('username').fill('standard_user');
+  await page.getByTestId('password').fill('secret_sauce');
+  await page.getByTestId('login-button').click();
+  await expect(page.getByTestId('title')).toBeVisible();
+});
+```
+---
+
 ## Prerequisites
 
 - VS Code
@@ -40,6 +65,43 @@ This project is intentionally narrow in scope. It is designed to be **predictabl
   - No guessing, no DOM scraping, no heuristics
 - Designed and validated specifically against **saucedemo.com**
 - Intended for **QA engineers**, not end users
+
+---
+
+## How It Works
+
+The codebase currently contains two generation paths:
+
+### V1 (Current User Flow — Extension Demo)
+
+Manual Steps  
+→ LLM  
+→ Playwright TypeScript test  
+
+This is the workflow shown in the demo. Internally, the extension now uses the V1.5 structured pipeline while preserving the same user experience.
+
+---
+
+## V1.5 (Structured Architecture — Internal / In Progress)
+
+Manual Steps  
+→ LLM  
+→ Structured JSON (schema-enforced)  
+→ Renderer  
+→ Playwright TypeScript test  
+
+Key idea:
+- The LLM does NOT directly generate test code
+- It produces structured JSON first
+- A renderer converts that JSON into deterministic Playwright code
+
+Why this matters:
+- More consistent output
+- Reduced variability across runs
+- Clear validation boundaries between planning and execution
+
+Note:
+V1.5 is now used internally by the extension’s Generate flow, while maintaining the same user experience.
 
 ---
 
@@ -161,7 +223,8 @@ This workflow is intentional and part of the design.
 ```
 playwright-gen-prototype/
 ├── README.md                # Product spec & usage contract
-├── generator.js             # Core generation logic (V1 locked)
+├── generator.js             # Core generation logic (V1 + V1.5 schema mode)
+├── renderer.js              # Converts structured JSON → Playwright test
 ├── index.js                 # CLI / entry wiring
 ├── vscode-extension/
 │   └── extension.js         # VS Code UI integration (V1 locked)
