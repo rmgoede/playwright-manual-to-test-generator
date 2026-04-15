@@ -2,7 +2,7 @@
 ![License](https://img.shields.io/github/license/rmgoede/playwright-manual-to-test-generator)
 # Playwright Manual-to-Test Generator (V1)
 
-A deterministic internal tool that converts **manual test steps (plain text)** into a **single, immediately runnable Playwright TypeScript test**.
+A deterministic QA tool that converts **manual test steps (plain text)** into a **single, immediately runnable Playwright TypeScript test**.
 
 This project is intentionally narrow in scope. It is designed to be **predictable, boring, and reliable** — not “smart.”
 ## Screenshots / Demo
@@ -70,7 +70,7 @@ test('Login and verify products title visible', async ({ page }) => {
 
 ## How It Works
 
-The codebase currently contains two generation paths:
+The codebase supports two generation paths:
 
 ### V1 (Current User Flow — Extension Demo)
 
@@ -82,7 +82,7 @@ This is the workflow shown in the demo. Internally, the extension now uses the V
 
 ---
 
-## V1.5 (Structured Architecture — Internal / In Progress)
+## V1.5 (Structured Architecture — Active / Internal)
 
 Manual Steps  
 → LLM  
