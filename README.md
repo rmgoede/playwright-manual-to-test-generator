@@ -87,6 +87,7 @@ This is the workflow shown in the demo. Internally, the extension now uses the V
 Manual Steps  
 → LLM  
 → Structured JSON (schema-enforced)  
+→ (optional) DOM validation layer  
 → Renderer  
 → Playwright TypeScript test  
 
@@ -104,10 +105,43 @@ Note:
 V1.5 is now used internally by the extension’s Generate flow, while maintaining the same user experience.
 
 ---
+## V1.6 (DOM Snapshot Validation — Phase 1)
+**Note:** This feature relies on local DOM parsing (via jsdom) and requires no additional setup beyond `npm install`.
 
+Manual steps  
+→ LLM  
+→ JSON (raw, possibly imperfect)  
+→ schema-resolver (uses DOM snapshot)  
+→ corrected JSON (deterministic)  
+→ renderer  
+→ Playwright code  
+
+Key idea:
+- The LLM proposes selectors
+- The system validates and corrects selectors using a saved DOM snapshot
+- Corrections are applied only when confidence is high
+
+Selector resolution behavior:
+1. Prefer `data-testid` when present in the DOM
+2. Fallback to `label` when a reliable match can be derived
+3. If no safe correction is possible, preserve the original selector
+
+Why this matters:
+- Reduces incorrect selector generation
+- Avoids unsafe “AI guessing”
+- Introduces deterministic validation into the pipeline
+- Maintains V1 philosophy: reliability over intelligence
+
+Important:
+- This is NOT live DOM scraping
+- This uses a saved HTML snapshot only
+- Behavior is optional — if no snapshot is provided, V1.5 behavior is preserved
+- Supports optional DOM snapshot–based validation of selectors
+
+---
 ## What This Tool Explicitly Does NOT Do (Non-Goals)
 
-- ❌ No DOM inspection or auto-discovery
+- ❌ No live DOM inspection or auto-discovery
 - ❌ No Excel ingestion (copy/paste only)
 - ❌ No multi-test generation
 - ❌ No retries, waits, or “smart” timing logic
@@ -225,6 +259,8 @@ playwright-gen-prototype/
 ├── README.md                # Product spec & usage contract
 ├── generator.js             # Core generation logic (V1 + V1.5 schema mode)
 ├── renderer.js              # Converts structured JSON → Playwright test
+├── dom-snapshot-resolver.js # DOM-based selector lookup
+├── schema-resolver.js       # Applies deterministic corrections to JSON
 ├── index.js                 # CLI / entry wiring
 ├── vscode-extension/
 │   └── extension.js         # VS Code UI integration (V1 locked)
