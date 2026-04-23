@@ -138,6 +138,25 @@ Important:
 - Behavior is optional — if no snapshot is provided, V1.5 behavior is preserved
 - Supports optional DOM snapshot–based validation of selectors
 
+### Providing a DOM Snapshot (temporary)
+
+V1.6 can optionally validate selectors against a DOM snapshot (a saved HTML file).
+
+**Quick way to get a snapshot:**
+
+1. Open the target page in your browser  
+2. Right-click → **Save Page As…**  
+3. Save as **HTML** (e.g., `snapshot.html`)  
+4. Place the file in your project  
+
+**Use it:**
+
+- Pass the snapshot file path when calling the generator (e.g., `snapshot.html`)
+
+**Notes:**
+
+- Snapshot is static HTML only (no live DOM scraping)  
+- If no snapshot is provided, V1.5 behavior is preserved  
 ---
 ## What This Tool Explicitly Does NOT Do (Non-Goals)
 
