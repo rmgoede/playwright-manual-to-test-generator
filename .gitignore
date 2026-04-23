@@ -38,3 +38,8 @@ agents/ai-generated/artifacts/**
 # Ignore PRIVATE_ROADMAP.md)
 PRIVATE_ROADMAP.md
 
+# V1.6 spike files
+dom-snapshot-spike.js
+sample-snapshot.html
+schema-resolver-spike.js
+generator-schema-spike.js

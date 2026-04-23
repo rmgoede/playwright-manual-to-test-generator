@@ -45,6 +45,7 @@
 
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { applyDomResolution } from './schema-resolver.js';
 
 dotenv.config();
 
@@ -330,7 +331,7 @@ ${stepsText}
  * V1.5 mode:
  * Convert manual steps into a structured JSON contract consumed by the renderer.
  */
-export async function generatePlaywrightSchemaFromSteps(rawStepsText) {
+export async function generatePlaywrightSchemaFromSteps(rawStepsText, snapshotPath = null) {
   const { testName, stepsText } = parseManualInput(rawStepsText);
 
   const prompt = `
@@ -346,9 +347,18 @@ ${stepsText}
   const jsonOutput = await callLLM(
     prompt,
     'You are a deterministic Playwright test planning engine. Return ONLY valid JSON that matches the required schema with no explanation.'
-  );
+);
 
-  return jsonOutput.trim();
+let parsed;
+try {
+  parsed = JSON.parse(jsonOutput);
+} catch (err) {
+  throw new Error('Failed to parse LLM JSON output');
+}
+
+const resolved = applyDomResolution(parsed, snapshotPath);
+
+return JSON.stringify(resolved, null, 2);
 }
 
 export default generatePlaywrightTestFromSteps;
