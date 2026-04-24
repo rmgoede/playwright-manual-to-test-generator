@@ -149,9 +149,33 @@ V1.6 can optionally validate selectors against a DOM snapshot (a saved HTML file
 3. Save as **HTML** (e.g., `snapshot.html`)  
 4. Place the file in your project  
 
-**Use it:**
+**Use it (current / developer usage):**
 
-- Pass the snapshot file path when calling the generator (e.g., `snapshot.html`)
+Provide the path to a saved HTML file representing the page under test.
+
+This feature is currently available via the generator API (programmatic usage).
+
+```js
+import { generatePlaywrightSchemaFromSteps } from './generator.js';
+
+const steps = `
+1. Go to https://www.saucedemo.com
+2. Enter username standard_user
+3. Enter password secret_sauce
+4. Click Login
+`;
+
+const schemaJson = await generatePlaywrightSchemaFromSteps(
+  steps,
+  './snapshot.html' // path to your saved HTML snapshot
+);
+
+console.log(schemaJson);
+```
+
+
+**Note:**
+UI-based snapshot capture (via the VS Code extension) is planned and will remove the need to manually provide a file path.
 
 **Notes:**
 
