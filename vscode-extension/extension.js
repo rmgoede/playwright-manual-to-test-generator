@@ -307,9 +307,12 @@ function getWebviewContent() {
 ..."></textarea>
 
   <div style="margin-top: 8px;">
-    <button id="generateBtn">Generate</button>
-  </div>
-
+  <button id="captureBtn">Capture Page Snapshot</button>
+  <button id="generateBtn">Generate</button>
+</div>
+<div id="snapshotStatus" class="snapshot-status" style="display: none;">
+  ✓ Snapshot ready (mock)
+</div>
   <div class="section-title">Generated Playwright test</div>
   <div class="toolbar">
     <div class="toolbar-left">
@@ -328,8 +331,18 @@ function getWebviewContent() {
     const stepsEl = document.getElementById('steps');
     const outputEl = document.getElementById('output');
     const generateBtn = document.getElementById('generateBtn');
+    const captureBtn = document.getElementById('captureBtn');
     const copyBtn = document.getElementById('copyBtn');
     const saveBtn = document.getElementById('saveBtn');
+
+    captureBtn.addEventListener('click', () => {
+    vscode.postMessage({ command: 'captureSnapshot' });
+
+    const status = document.getElementById('snapshotStatus');
+    if (status) {
+    status.style.display = 'block';
+      }
+    });
 
     generateBtn.addEventListener('click', () => {
       const text = stepsEl.value.trim();
@@ -422,6 +435,7 @@ async function saveGeneratedTestToFile(code) {
 // VS Code extension entry points
 // ------------------------
 function activate(context) {
+  let snapshotPath = null;
   console.log('Playwright Test Generator extension is active!');
 
   const disposable = vscode.commands.registerCommand(
@@ -446,7 +460,8 @@ function activate(context) {
               } = await loadV15Modules();
 
               const schema = await generatePlaywrightSchemaFromSteps(
-                message.text || ''
+                message.text || '',
+                snapshotPath
               );
               const parsed = JSON.parse(schema);
               const code = renderPlaywrightTestFromSchema(parsed);
@@ -471,6 +486,10 @@ function activate(context) {
                 'Error saving generated test file. See console for details.'
               );
             }
+            
+          } else if (message.command === 'captureSnapshot') {
+            snapshotPath = path.join(__dirname, '../sample-snapshot.html'); // TEMP mock
+            vscode.window.showInformationMessage('Snapshot captured (mock)');
           } else if (message.command === 'info') {
             if (message.message) vscode.window.showInformationMessage(message.message);
           } else if (message.command === 'error') {
