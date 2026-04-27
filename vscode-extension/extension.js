@@ -293,6 +293,19 @@ function getWebviewContent() {
     .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; margin-top: 8px; }
     .toolbar-left { font-size: 12px; opacity: 0.8; }
     .toolbar-right button { margin-right: 4px; }
+
+    .snapshot-status {
+      display: none;
+      margin-top: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #d1fae5;
+      background-color: #064e3b;
+      border: 1px solid #22c55e;
+      border-radius: 999px;
+      width: fit-content;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -307,10 +320,13 @@ function getWebviewContent() {
 ..."></textarea>
 
   <div style="margin-top: 8px;">
-  <button id="captureBtn">Capture Page Snapshot</button>
+  <button id="captureBtn">Use Current Page Snapshot</button>
   <button id="generateBtn">Generate</button>
 </div>
-<div id="snapshotStatus" class="snapshot-status" style="display: none;">
+<div class="subtext">
+  Capture the current page DOM to improve selector accuracy
+</div>
+<div id="snapshotStatus" class="snapshot-status">
   ✓ Snapshot ready (mock)
 </div>
   <div class="section-title">Generated Playwright test</div>
