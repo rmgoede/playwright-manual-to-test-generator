@@ -356,6 +356,7 @@ playwright-gen-prototype/
 ├── README.md                # Product spec & usage contract
 ├── generator.js             # Core generation logic (V1 + V1.5 schema mode)
 ├── renderer.js              # Converts structured JSON → Playwright test
+├── semantic-mapper.js       # Element-aware action/assertion mapping
 ├── dom-snapshot-resolver.js # DOM-based selector lookup
 ├── schema-resolver.js       # Applies deterministic corrections to JSON
 ├── index.js                 # CLI / entry wiring
