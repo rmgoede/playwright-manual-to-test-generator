@@ -63,6 +63,7 @@ test('Login and verify products title visible', async ({ page }) => {
 - Uses **deterministic selectors only**
   - Prefers `data-testid`, then `role`, then `label`
   - No guessing, no DOM scraping, no heuristics
+  - Applies semantic mapping for element-aware interactions (e.g. checkbox, dropdown)
 - Designed and validated specifically against **saucedemo.com**
 - Intended for **QA engineers**, not end users
 
@@ -87,7 +88,8 @@ This is the workflow shown in the demo. Internally, the extension now uses the V
 Manual Steps  
 → LLM  
 → Structured JSON (schema-enforced)  
-→ (optional) DOM validation layer  
+→ (optional) DOM validation layer 
+→ semantic mapping layer 
 → Renderer  
 → Playwright TypeScript test  
 
@@ -111,7 +113,8 @@ V1.5 is now used internally by the extension’s Generate flow, while maintainin
 Manual steps  
 → LLM  
 → JSON (raw, possibly imperfect)  
-→ schema-resolver (uses DOM snapshot)  
+→ schema-resolver (uses DOM snapshot) 
+→ semantic-mapper  
 → corrected JSON (deterministic)  
 → renderer  
 → Playwright code  
@@ -181,6 +184,57 @@ UI-based snapshot capture (via the VS Code extension) is planned and will remove
 
 - Snapshot is static HTML only (no live DOM scraping)  
 - If no snapshot is provided, V1.5 behavior is preserved  
+
+---
+
+## V1.7 — Semantic Mapping Layer
+
+Manual steps  
+→ LLM  
+→ JSON  
+→ schema-resolver  
+→ semantic-mapper  
+→ renderer  
+→ Playwright code  
+
+Key idea:
+- The system now understands **element intent**
+- Actions and assertions are mapped deterministically based on element type
+
+Example (Checkbox):
+
+Input:
+- Check checkbox 1  
+- Verify checkbox 1 is checked  
+
+Output:
+- Uses `check()` instead of `click()`
+- Uses `toBeChecked()` instead of text-based assertions
+
+Why this matters:
+- Eliminates incorrect generic interactions
+- Improves reliability of generated tests
+- Moves system from “code generation” → “behavior mapping”
+
+---
+
+## V1.7.1 — Selector Stability Improvements
+
+Key idea:
+- Replace fragile selectors like `nth-of-type`
+- Use structured locator + index instead
+
+Before:
+```
+page.locator("input[type='checkbox']:nth-of-type(1)")
+```
+After:
+```
+page.locator('#checkboxes input[type="checkbox"]').nth(0)
+```
+Why this matters:
+- More stable against DOM changes
+- More readable and maintainable
 ---
 ## What This Tool Explicitly Does NOT Do (Non-Goals)
 
@@ -201,7 +255,7 @@ If a scenario is not explicitly supported, the output is allowed to fail.
 This tool is a good fit if you:
 - Are comfortable running Playwright locally
 - Want a repeatable workflow for generating a Playwright test draft from written steps
-- Are OK refining selectors after inspecting the real DOM (expected by design)
+- Are OK refining selectors for unsupported scenarios (some supported scenarios require no manual fixes)
 - Can supply your own OpenAI API key for local execution (`OPENAI_API_KEY`)
 
 This tool is **not** a fit if you expect:
@@ -380,14 +434,14 @@ V1 is considered **DONE** when all are true:
 
 - [ ] Output is only valid TypeScript (no markdown, no prose)
 - [ ] Exactly one test('...', async ({ page }) => { ... })
-- [ ] Uses locator actions correctly (locator.click(), locator.fill())
+- [ ] Uses locator actions correctly (locator.click(), locator.fill(), locator.check(), locator.uncheck())
 - [ ] Never does invalid calls like page.click(locator)
 - [ ] Assertions use await expect(...)
 
 ### Selector strategy (V1 rules)
 
 - [ ] Prefers stable selectors (getByTestId, getByRole, getByLabel)
-- [ ] Avoids .nth() unless it’s a true last resort
+- [ ] Avoids fragile nth-of-type selectors; uses .nth(index) only when required for stability
 - [ ] When product names are specified, targets those products explicitly
 
 ### SauceDemo baked-in rules validated
