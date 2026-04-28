@@ -25,18 +25,61 @@ The system is designed to be:
 
 **Responsibility:**
 - Parse pasted manual test steps
-- Apply explicit transformation rules
-- Emit a single Playwright `.spec.ts` file
+- Convert them into structured JSON (schema-driven)
+- Coordinate downstream processing (validation + mapping + rendering)
 
 **Key traits:**
 - Rule-based (not heuristic)
-- No DOM inspection
+- No live DOM inspection
 - No autonomous AI reasoning beyond explicit, rule-bound instructions
 - No retries or timing logic
 
 ---
 
-### 2. VS Code Extension (UI Layer)
+### 2. Schema + Validation Layer
+
+**Responsibility:**
+- Enforce a structured contract between planning and execution
+- Validate and correct selectors using optional DOM snapshots
+
+**Key traits:**
+- Deterministic corrections only
+- Uses saved HTML snapshots (no live DOM)
+- Preserves original selector when no safe correction is possible
+
+---
+
+### 3. Semantic Mapping Layer (V1.7)
+
+**Responsibility:**
+- Convert generic step intent into **element-aware behavior**
+- Ensure correct Playwright actions and assertions are used
+
+**Examples:**
+- Checkbox:
+  - `click` → `check()` / `uncheck()`
+  - Text assertion → `toBeChecked()`
+
+**Key traits:**
+- Deterministic (rule-based mapping)
+- No inference beyond explicit intent
+- Operates on structured JSON, not raw text
+
+---
+
+### 4. Renderer
+
+**Responsibility:**
+- Convert structured JSON into Playwright TypeScript code
+
+**Key traits:**
+- Deterministic output
+- No formatting variability
+- No interpretation logic (pure transformation)
+
+---
+
+### 5. VS Code Extension (UI Layer)
 
 **Responsibility:**
 - Accept pasted manual steps
@@ -50,7 +93,7 @@ The system is designed to be:
 
 ---
 
-### 3. Validation Suite (External)
+### 6. Validation Suite (External)
 
 **Responsibility:**
 - Prove correctness of generated output
@@ -65,13 +108,34 @@ The system is designed to be:
 
 ## Data Flow (Conceptual)
 
-1. User pastes manual steps
-2. Generator applies deterministic rules
-3. A single Playwright test file is produced
-4. Test is executed without manual edits
-5. Pass/fail result validates generator correctness
+Manual Steps  
+→ LLM  
+→ Structured JSON  
+→ Schema Validation (DOM snapshot optional)  
+→ Semantic Mapping  
+→ Renderer  
+→ Playwright TypeScript test  
 
-There is no hidden state or feedback loop.
+Key properties:
+- No hidden state
+- No feedback loops
+- Each stage has a single responsibility
+- Output is deterministic
+
+---
+
+## Selector Strategy (High-Level)
+
+The system prioritizes stable selectors:
+
+1. `data-testid`
+2. `role`
+3. `label`
+4. CSS (fallback)
+
+Enhancements (V1.7.1):
+- Avoid fragile `nth-of-type` patterns
+- Use structured selectors with `.nth(index)` when required
 
 ---
 
@@ -91,8 +155,10 @@ These are considered **future-version concerns**.
 
 ## Evolution Path (High-Level)
 
-- **V1:** Static input → deterministic output
-- **V1.5:** Offline DOM snapshots (no runtime dependency)
+- **V1:** Static input → deterministic output  
+- **V1.5:** Structured schema + offline DOM validation  
+- **V1.7:** Semantic mapping (element-aware behavior)  
+- **V1.7.1:** Selector stability improvements  
 - **V2:** Optional live integration (separate product tier)
 
 Each step increases capability without breaking earlier guarantees.
