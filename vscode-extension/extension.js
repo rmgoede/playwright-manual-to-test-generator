@@ -320,14 +320,14 @@ function getWebviewContent() {
 ..."></textarea>
 
   <div style="margin-top: 8px;">
-  <button id="captureBtn">Use Current Page Snapshot</button>
+  <button id="captureBtn">Select Snapshot File</button>
   <button id="generateBtn">Generate</button>
 </div>
 <div class="subtext">
-  Capture the current page DOM to improve selector accuracy
+  Select a saved HTML snapshot to improve selector accuracy
 </div>
 <div id="snapshotStatus" class="snapshot-status">
-  ✓ Snapshot ready (mock)
+  ✓ Snapshot file selected
 </div>
   <div class="section-title">Generated Playwright test</div>
   <div class="toolbar">
@@ -342,67 +342,70 @@ function getWebviewContent() {
   <textarea id="output" rows="18" placeholder="Generated Playwright TypeScript test will appear here..."></textarea>
 
   <script>
-    const vscode = acquireVsCodeApi();
+  const vscode = acquireVsCodeApi();
 
-    const stepsEl = document.getElementById('steps');
-    const outputEl = document.getElementById('output');
-    const generateBtn = document.getElementById('generateBtn');
-    const captureBtn = document.getElementById('captureBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const saveBtn = document.getElementById('saveBtn');
+  const stepsEl = document.getElementById('steps');
+  const outputEl = document.getElementById('output');
+  const generateBtn = document.getElementById('generateBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const saveBtn = document.getElementById('saveBtn');
 
-    captureBtn.addEventListener('click', () => {
+  captureBtn.addEventListener('click', () => {
     vscode.postMessage({ command: 'captureSnapshot' });
+  });
 
-    const status = document.getElementById('snapshotStatus');
-    if (status) {
-    status.style.display = 'block';
-      }
-    });
+  generateBtn.addEventListener('click', () => {
+    const text = stepsEl.value.trim();
+    if (!text) {
+      vscode.postMessage({ command: 'info', message: 'Please paste some manual steps before generating.' });
+      return;
+    }
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+    vscode.postMessage({ command: 'generate', text });
+  });
 
-    generateBtn.addEventListener('click', () => {
-      const text = stepsEl.value.trim();
-      if (!text) {
-        vscode.postMessage({ command: 'info', message: 'Please paste some manual steps before generating.' });
-        return;
-      }
-      generateBtn.disabled = true;
-      generateBtn.textContent = 'Generating...';
-      vscode.postMessage({ command: 'generate', text });
-    });
+  copyBtn.addEventListener('click', async () => {
+    const code = outputEl.value.trim();
+    if (!code) {
+      vscode.postMessage({ command: 'info', message: 'Nothing to copy yet. Generate a test first.' });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(code);
+      vscode.postMessage({ command: 'info', message: 'Generated test copied to clipboard.' });
+    } catch (err) {
+      vscode.postMessage({ command: 'error', message: 'Unable to access clipboard from webview.' });
+    }
+  });
 
-    copyBtn.addEventListener('click', async () => {
-      const code = outputEl.value.trim();
-      if (!code) {
-        vscode.postMessage({ command: 'info', message: 'Nothing to copy yet. Generate a test first.' });
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(code);
-        vscode.postMessage({ command: 'info', message: 'Generated test copied to clipboard.' });
-      } catch (err) {
-        vscode.postMessage({ command: 'error', message: 'Unable to access clipboard from webview.' });
-      }
-    });
+  saveBtn.addEventListener('click', () => {
+    const code = outputEl.value.trim();
+    if (!code) {
+      vscode.postMessage({ command: 'info', message: 'Nothing to save yet. Generate a test first.' });
+      return;
+    }
+    vscode.postMessage({ command: 'saveTest', code });
+  });
 
-    saveBtn.addEventListener('click', () => {
-      const code = outputEl.value.trim();
-      if (!code) {
-        vscode.postMessage({ command: 'info', message: 'Nothing to save yet. Generate a test first.' });
-        return;
-      }
-      vscode.postMessage({ command: 'saveTest', code });
-    });
+  window.addEventListener('message', event => {
+    const message = event.data;
 
-    window.addEventListener('message', event => {
-      const message = event.data;
-      if (message.command === 'generated') {
-        outputEl.value = message.code || '';
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate';
+    if (message.command === 'generated') {
+      outputEl.value = message.code || '';
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate';
+    }
+
+    if (message.command === 'snapshotReady') {
+      const status = document.getElementById('snapshotStatus');
+      if (status) {
+        status.style.display = 'block';
       }
-    });
-  </script>
+    }
+  });
+</script>
 </body>
 </html>`;
 }
@@ -479,10 +482,17 @@ function activate(context) {
                 message.text || '',
                 snapshotPath
               );
+
+              console.log('Generated schema:', schema);
+
               const parsed = JSON.parse(schema);
+
+              console.log('Parsed schema:', parsed);
+
               const code = renderPlaywrightTestFromSchema(parsed);
 
               panel.webview.postMessage({ command: 'generated', code });
+              
             } catch (err) {
               console.error('Error generating test from extension:', err);
               vscode.window.showErrorMessage(
@@ -504,12 +514,19 @@ function activate(context) {
             }
             
           } else if (message.command === 'captureSnapshot') {
-            snapshotPath = path.join(__dirname, '../sample-snapshot.html'); // TEMP mock
-            vscode.window.showInformationMessage('Snapshot captured (mock)');
-          } else if (message.command === 'info') {
-            if (message.message) vscode.window.showInformationMessage(message.message);
-          } else if (message.command === 'error') {
-            if (message.message) vscode.window.showErrorMessage(message.message);
+            const result = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            openLabel: 'Select HTML Snapshot',
+            filters: {
+              'HTML Files': ['html', 'htm']
+            }
+            });
+
+            if (result && result[0]) {
+              snapshotPath = result[0].fsPath;
+              vscode.window.showInformationMessage('Snapshot file selected');
+              panel.webview.postMessage({ command: 'snapshotReady' });
+            }
           }
         },
         undefined,

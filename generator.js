@@ -46,6 +46,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { applyDomResolution } from './schema-resolver.js';
+import { mapSemanticSteps } from './semantic-mapper.js';
 
 dotenv.config();
 
@@ -356,9 +357,13 @@ try {
   throw new Error('Failed to parse LLM JSON output');
 }
 
+// Pipeline order:
+// 1. DOM resolution → enhances selectors using optional snapshot (stability)
+// 2. Semantic mapping → enforces element-aware actions/assertions (correctness)
 const resolved = applyDomResolution(parsed, snapshotPath);
+const mapped = mapSemanticSteps(resolved);
 
-return JSON.stringify(resolved, null, 2);
+return JSON.stringify(mapped, null, 2);
 }
 
 export default generatePlaywrightTestFromSteps;
