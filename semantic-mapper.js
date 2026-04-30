@@ -33,7 +33,15 @@ function inferElementType(step = {}) {
   );
 
   if (text.includes('checkbox')) return 'checkbox';
-  if (text.includes('dropdown') || text.includes('select option') || text.includes('combobox')) return 'dropdown';
+    if (
+    text.includes('dropdown') ||
+    text.includes('select option') ||
+    text.includes('combobox') ||
+    step.selector?.strategy === 'role' && step.selector?.value === 'combobox' ||
+    step.assertion?.selector?.strategy === 'role' && step.assertion?.selector?.value === 'combobox'
+  ) {
+    return 'dropdown';
+  }
   // Do not infer "button" from click alone.
   // Many elements are clicked, including checkboxes, links, radios, and menu items.
   if (text.includes('button')) return 'button';
@@ -123,6 +131,43 @@ if (mapped.assertion && mapped.assertion.selector) {
     return mapped;
     }
   }
+
+   // Dropdown rules
+  if (elementType === 'dropdown') {
+    if (step.type === 'action') {
+      mapped.action = 'select';
+
+      // Herokuapp dropdown uses visible labels "Option 1"/"Option 2"
+      // while the underlying DOM values are "1"/"2".
+      if (step.value === '1') {
+        mapped.value = 'Option 1';
+      }
+
+      if (step.value === '2') {
+        mapped.value = 'Option 2';
+      }
+
+      return mapped;
+    }
+
+    if (step.type === 'assertion') {
+      mapped.assertion = {
+        ...(mapped.assertion || {}),
+        method: 'toHaveValue',
+        expected:
+          step.value === 'Option 1' ? '1' :
+          step.value === 'Option 2' ? '2' :
+          mapped.assertion?.expected === 'Option 1' ? '1' :
+          mapped.assertion?.expected === 'Option 2' ? '2' :
+          step.value || mapped.assertion?.expected
+      };
+
+      return mapped;
+    }
+    return mapped;
+  }
+  
+  
 
   // Button rules
   if (elementType === 'button') {

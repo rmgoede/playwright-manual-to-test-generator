@@ -173,6 +173,13 @@ export function renderPlaywrightTestFromSchema(schema) {
         }
       }
 
+      if (assertion?.method === 'toHaveValue' && assertion.selector) {
+        const locator = renderLocator(assertion.selector);
+        if (locator) {
+          lines.push(`  await expect(${locator}).toHaveValue(${quote(assertion.expected)});`);
+        }
+      }
+
       if (assertion?.method === 'not.toBeChecked' && assertion.selector) {
         const locator = renderLocator(assertion.selector);
         if (locator) {
