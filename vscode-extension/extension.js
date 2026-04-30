@@ -306,6 +306,9 @@ function getWebviewContent() {
       width: fit-content;
       font-weight: 600;
     }
+    #copyStatus {
+      transition: opacity 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -339,6 +342,16 @@ function getWebviewContent() {
       <button id="saveBtn">Save .spec.ts</button>
     </div>
   </div>
+    <div id="copyStatus" style="
+      display:none;
+      margin-top:6px;
+      margin-bottom:6px;
+      font-size:12px;
+      color:#22c55e;
+      font-weight:600;
+    ">
+      ✓ Copied to clipboard
+    </div>
   <textarea id="output" rows="18" placeholder="Generated Playwright TypeScript test will appear here..."></textarea>
 
   <script>
@@ -349,6 +362,7 @@ function getWebviewContent() {
   const generateBtn = document.getElementById('generateBtn');
   const captureBtn = document.getElementById('captureBtn');
   const copyBtn = document.getElementById('copyBtn');
+  const copyStatus = document.getElementById('copyStatus');
   const saveBtn = document.getElementById('saveBtn');
 
   captureBtn.addEventListener('click', () => {
@@ -374,7 +388,19 @@ function getWebviewContent() {
     }
     try {
       await navigator.clipboard.writeText(code);
-      vscode.postMessage({ command: 'info', message: 'Generated test copied to clipboard.' });
+      copyBtn.disabled = true;
+      // Show inline confirmation
+      copyStatus.style.display = 'block';
+      copyStatus.style.opacity = '1';
+
+      setTimeout(() => {
+        copyStatus.style.opacity = '0';
+      }, 1500);
+
+      setTimeout(() => {
+        copyStatus.style.display = 'none';
+        copyBtn.disabled = false;
+      }, 2000);
     } catch (err) {
       vscode.postMessage({ command: 'error', message: 'Unable to access clipboard from webview.' });
     }
