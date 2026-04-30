@@ -235,7 +235,22 @@ page.locator('#checkboxes input[type="checkbox"]').nth(0)
 Why this matters:
 - More stable against DOM changes
 - More readable and maintainable
+
 ---
+## V1.8 — Dropdown Semantic Mapping
+
+Added support for dropdown interactions:
+
+- Generates `selectOption({ label: ... })` for actions
+- Generates `toHaveValue(...)` for assertions
+- Handles label ↔ value mapping (e.g. "Option 1" → "1")
+
+Validated scenarios:
+- Option 1 selection
+- Option 2 selection
+- No regression for checkbox scenarios
+---
+
 ## What This Tool Explicitly Does NOT Do (Non-Goals)
 
 - ❌ No live DOM inspection or auto-discovery
