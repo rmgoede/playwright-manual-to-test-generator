@@ -88,8 +88,7 @@ This is the workflow shown in the demo. Internally, the extension now uses the V
 Manual Steps  
 → LLM  
 → Structured JSON (schema-enforced)  
-→ (optional) DOM validation layer 
-→ semantic mapping layer 
+→ Semantic mapping layer (deterministic behavior mapping)
 → Renderer  
 → Playwright TypeScript test  
 
@@ -121,7 +120,7 @@ Manual steps
 
 Key idea:
 - The LLM proposes selectors
-- The system validates and corrects selectors using a saved DOM snapshot
+- The system validates and corrects selectors using one or more saved DOM snapshots
 - Corrections are applied only when confidence is high
 
 Selector resolution behavior:
@@ -137,7 +136,7 @@ Why this matters:
 
 Important:
 - This is NOT live DOM scraping
-- This uses a saved HTML snapshot only
+- This uses saved HTML snapshots only
 - Behavior is optional — if no snapshot is provided, V1.5 behavior is preserved
 - Supports optional DOM snapshot–based validation of selectors
 
@@ -251,6 +250,45 @@ Validated scenarios:
 - No regression for checkbox scenarios
 ---
 
+## V1.9 — Snapshot-Aware Selector Resolution
+
+Manual steps  
+→ LLM  
+→ Structured JSON  
+→ Snapshot assignment layer  
+→ Snapshot selector resolution  
+→ Semantic mapping  
+→ Renderer  
+→ Playwright code  
+
+Key ideas:
+- Supports multi-page snapshot flows
+- Resolves selectors against the correct DOM state
+- Uses scoring-based matching to improve selector reliability
+- Prevents unsafe selector guessing
+- Improves cross-site reliability
+
+Examples:
+- Login page snapshot
+- Post-login inventory/dashboard snapshot
+- Cart/assertion snapshot
+
+Why this matters:
+- Reduces incorrect selector generation after navigation
+- Improves deterministic behavior across websites
+- Establishes foundation for future live DOM capture
+
+Validated against:
+- SauceDemo
+- Herokuapp Login
+
+Important:
+- Still uses saved HTML snapshots only
+- Live DOM capture is planned for future versions
+- If selector resolution confidence is low, generation stops safely instead of generating bad selectors
+- Includes safe failure behavior for unresolved selector flows
+---
+
 ## What This Tool Explicitly Does NOT Do (Non-Goals)
 
 - ❌ No live DOM inspection or auto-discovery
@@ -259,7 +297,7 @@ Validated scenarios:
 - ❌ No retries, waits, or “smart” timing logic
 - ❌ No framework abstraction
 - ❌ No AI reasoning about intent beyond explicit rules
-- ❌ No general-purpose website support
+- ❌ No guarantee of universal website support
 
 If a scenario is not explicitly supported, the output is allowed to fail.
 
@@ -291,6 +329,9 @@ The following scenarios have been **generated, saved, and executed successfully*
 4. Negative login (locked-out user)
 5. Cart badge state changes (0 → 1 → 2)
 6. Product sorting (low to high price)
+7. Herokuapp secure login flow
+8. Cross-page snapshot selector resolution
+9. Safe failure behavior for invalid/manual-step input
 
 These scenarios define the **functional contract** of V1.
 
@@ -368,15 +409,22 @@ This workflow is intentional and part of the design.
 ## Project Structure (Relevant to Users)
 ```
 playwright-gen-prototype/
-├── README.md                # Product spec & usage contract
-├── generator.js             # Core generation logic (V1 + V1.5 schema mode)
-├── renderer.js              # Converts structured JSON → Playwright test
-├── semantic-mapper.js       # Element-aware action/assertion mapping
-├── dom-snapshot-resolver.js # DOM-based selector lookup
-├── schema-resolver.js       # Applies deterministic corrections to JSON
-├── index.js                 # CLI / entry wiring
+├── README.md
+├── generator.js
+├── renderer.js
+├── semantic-mapper.js
+├── schema-resolver.js
 ├── vscode-extension/
-│   └── extension.js         # VS Code UI integration (V1 locked)
+│   └── extension.js
+├── src/
+│   ├── element-matcher.js
+│   ├── locator-builder.js
+│   ├── selector-resolver.js
+│   ├── snapshot-parser.js
+│   └── snapshot-selector-pipeline.js
+├── snapshots/
+├── tests/
+│   └── harness/
 ├── package.json
 └── package-lock.json
 ```
