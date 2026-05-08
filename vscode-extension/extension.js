@@ -480,7 +480,7 @@ async function saveGeneratedTestToFile(code) {
 // VS Code extension entry points
 // ------------------------
 function activate(context) {
-  let snapshotPath = null;
+  let snapshotPaths = [];
   console.log('Playwright Test Generator extension is active!');
 
   const disposable = vscode.commands.registerCommand(
@@ -496,67 +496,108 @@ function activate(context) {
       panel.webview.html = getWebviewContent();
 
       panel.webview.onDidReceiveMessage(
-        async (message) => {
-          if (message.command === 'generate') {
-            try {
-              const {
-                generatePlaywrightSchemaFromSteps,
-                renderPlaywrightTestFromSchema,
-              } = await loadV15Modules();
+  async (message) => {
+    if (message.command === 'generate') {
+      try {
+        const rawText = message.text || '';
 
-              const schema = await generatePlaywrightSchemaFromSteps(
-                message.text || '',
-                snapshotPath
-              );
+        const hasUrl = /https?:\/\/\S+/i.test(rawText);
+        const hasActionWords =
+          /(go to|enter|click|select|verify|assert|check|fill|type)/i.test(rawText);
 
-              console.log('Generated schema:', schema);
+        if (!hasUrl || !hasActionWords) {
+          const friendlyMessage =
+            `Generation stopped safely.\n\n` +
+            `Reason:\nManual steps do not appear to contain a usable test flow.\n\n` +
+            `What to include:\n` +
+            `- A target URL\n` +
+            `- Clear action steps like Go to, Enter, Click, Select, Verify\n` +
+            `- The expected result for verification steps`;
 
-              const parsed = JSON.parse(schema);
+          panel.webview.postMessage({
+            command: 'generated',
+            code: friendlyMessage,
+          });
 
-              console.log('Parsed schema:', parsed);
+          vscode.window.showWarningMessage(
+            'Generation stopped safely. Manual steps need a URL and clear actions.'
+          );
+          return;
+        }
 
-              const code = renderPlaywrightTestFromSchema(parsed);
+        const {
+          generatePlaywrightSchemaFromSteps,
+          renderPlaywrightTestFromSchema,
+        } = await loadV15Modules();
 
-              panel.webview.postMessage({ command: 'generated', code });
-              
-            } catch (err) {
-              console.error('Error generating test from extension:', err);
-              vscode.window.showErrorMessage(
-                'Error generating Playwright test. Check console for details.'
-              );
-              panel.webview.postMessage({
-                command: 'generated',
-                code: "import { test, expect } from '@playwright/test';\n\ntest('generation error', async ({ page }) => {\n  await page.goto('about:blank');\n  await expect(page).toHaveURL(/about:blank/);\n});",
-              });
-            }
-          } else if (message.command === 'saveTest') {
-            try {
-              await saveGeneratedTestToFile(message.code || '');
-            } catch (err) {
-              console.error('Error saving generated test:', err);
-              vscode.window.showErrorMessage(
-                'Error saving generated test file. See console for details.'
-              );
-            }
-            
-          } else if (message.command === 'captureSnapshot') {
-            const result = await vscode.window.showOpenDialog({
-            canSelectMany: false,
-            openLabel: 'Select HTML Snapshot',
-            filters: {
-              'HTML Files': ['html', 'htm']
-            }
-            });
+        const schema = await generatePlaywrightSchemaFromSteps(
+          rawText,
+          snapshotPaths
+        );
 
-            if (result && result[0]) {
-              snapshotPath = result[0].fsPath;
-              vscode.window.showInformationMessage('Snapshot file selected');
-              panel.webview.postMessage({ command: 'snapshotReady' });
-            }
-          }
-        },
-        undefined,
-        context.subscriptions
+        console.log('Generated schema:', schema);
+
+        const parsed = JSON.parse(schema);
+
+        console.log('Parsed schema:', parsed);
+
+        const code = renderPlaywrightTestFromSchema(parsed);
+
+        panel.webview.postMessage({ command: 'generated', code });
+      } catch (err) {
+        console.error('Error generating test from extension:', err);
+
+        const detail =
+          err && err.message
+            ? err.message
+            : 'Unknown generation error';
+
+        const friendlyMessage =
+          `Generation stopped safely.\n\n` +
+          `Reason:\n${detail}\n\n` +
+          `What to check:\n` +
+          `- Make sure the correct snapshot file(s) are selected\n` +
+          `- Make sure the snapshot matches the page state for the step\n` +
+          `- If the UI changes after an action, capture/select the next page-state snapshot\n` +
+          `- Reword the manual step with a clearer target element`;
+
+        vscode.window.showErrorMessage(
+          'Generation stopped safely. See output panel for details.'
+        );
+
+        panel.webview.postMessage({
+          command: 'generated',
+          code: friendlyMessage,
+        });
+      }
+    } else if (message.command === 'saveTest') {
+      try {
+        await saveGeneratedTestToFile(message.code || '');
+      } catch (err) {
+        console.error('Error saving generated test:', err);
+        vscode.window.showErrorMessage(
+          'Error saving generated test file. See console for details.'
+        );
+      }
+    } else if (message.command === 'captureSnapshot') {
+      const result = await vscode.window.showOpenDialog({
+        canSelectMany: true,
+        openLabel: 'Select HTML Snapshot(s)',
+        filters: {
+          'HTML Files': ['html', 'htm']
+        }
+      });
+
+      if (result && result.length > 0) {
+        snapshotPaths.push(...result.map(uri => uri.fsPath));
+        vscode.window.showInformationMessage(`${result.length} snapshot file(s) selected`);
+        panel.webview.postMessage({ command: 'snapshotReady' });
+      }
+    }
+  },
+  undefined,
+  context.subscriptions
+  
       );
     }
   );

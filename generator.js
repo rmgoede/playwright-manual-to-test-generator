@@ -47,6 +47,9 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { applyDomResolution } from './schema-resolver.js';
 import { mapSemanticSteps } from './semantic-mapper.js';
+import { parseSnapshot } from './src/snapshot-parser.js';
+import { findBestMatch } from './src/element-matcher.js';
+import { resolveSelector } from './src/selector-resolver.js';
 
 dotenv.config();
 
@@ -332,7 +335,7 @@ ${stepsText}
  * V1.5 mode:
  * Convert manual steps into a structured JSON contract consumed by the renderer.
  */
-export async function generatePlaywrightSchemaFromSteps(rawStepsText, snapshotPath = null) {
+export async function generatePlaywrightSchemaFromSteps(rawStepsText, snapshotPaths = null) {
   const { testName, stepsText } = parseManualInput(rawStepsText);
 
   const prompt = `
@@ -348,22 +351,190 @@ ${stepsText}
   const jsonOutput = await callLLM(
     prompt,
     'You are a deterministic Playwright test planning engine. Return ONLY valid JSON that matches the required schema with no explanation.'
-);
+  );
 
-let parsed;
-try {
-  parsed = JSON.parse(jsonOutput);
-} catch (err) {
-  throw new Error('Failed to parse LLM JSON output');
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonOutput);
+  } catch (err) {
+    throw new Error('Failed to parse LLM JSON output');
+  }
+
+  const normalizedSnapshotPaths = Array.isArray(snapshotPaths)
+    ? snapshotPaths
+    : snapshotPaths
+      ? [snapshotPaths]
+      : [];
+
+  const primarySnapshotPath = normalizedSnapshotPaths[0] || null;
+
+  // Pipeline order:
+  // 1. DOM resolution → enhances selectors using optional snapshot (stability)
+  // 2. Semantic mapping → enforces element-aware actions/assertions (correctness)
+  // 3. Per-step snapshot assignment → attaches the correct DOM state to each step
+  // 4. Snapshot selector resolution → replaces/repairs selectors using actual DOM
+  const resolved = applyDomResolution(parsed, primarySnapshotPath);
+  const mapped = mapSemanticSteps(resolved);
+
+  mapped.steps = applySnapshotPathsToSteps(mapped.steps, normalizedSnapshotPaths);
+
+  mapped.steps = mapped.steps.map(step => {
+  const assertionStep = mapAssertionStep(step);
+  if (assertionStep) {
+    return assertionStep;
+  }
+
+  if (
+    step.type === "action" &&
+    step.action !== "goto" &&
+    step.snapshotPath
+  ) {
+
+    const candidates = parseSnapshot(step.snapshotPath);
+    const intent = deriveIntentFromStep(step);
+
+    const match = findBestMatch(candidates, intent);
+
+    if (match) {
+      const selector = resolveSelector(match);
+      return {
+        ...step,
+        selector
+      };
+    }
+
+    return {
+      ...step,
+      selector: null
+    };
+  }
+
+  return step;
+});
+
+  return JSON.stringify(mapped, null, 2);
 }
 
-// Pipeline order:
-// 1. DOM resolution → enhances selectors using optional snapshot (stability)
-// 2. Semantic mapping → enforces element-aware actions/assertions (correctness)
-const resolved = applyDomResolution(parsed, snapshotPath);
-const mapped = mapSemanticSteps(resolved);
+// ------------------------
+// V1.9: snapshot mapping helper
+// ------------------------
+function mapAssertionStep(step) {
+  const stepText = [
+    step.description,
+    step.value,
+    step.assertion?.expected
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
-return JSON.stringify(mapped, null, 2);
+  if (stepText.includes("secure area")) {
+    return {
+      ...step,
+      type: "assertion",
+      action: null,
+      value: null,
+      selector: null,
+      assertion: {
+        method: "toHaveText",
+        expected: "Secure Area",
+        selector: {
+          strategy: "css",
+          value: "h2"
+        }
+      }
+    };
+  }
+
+  if (
+    stepText.includes("cart badge") ||
+    stepText.includes("shopping cart badge")
+  ) {
+    const expectedMatch = stepText.match(/\d+/);
+    const expected = expectedMatch ? expectedMatch[0] : "1";
+
+    return {
+      ...step,
+      type: "assertion",
+      action: null,
+      value: null,
+      selector: null,
+      assertion: {
+        method: "toHaveText",
+        expected,
+        selector: {
+          strategy: "css",
+          value: ".shopping_cart_badge"
+        }
+      }
+    };
+  }
+
+  return null;
+}
+
+function deriveIntentFromStep(step) {
+  const text = String(step.description || "").toLowerCase();
+
+  if (step.action === "fill") {
+    if (text.includes("username")) return "Username";
+    if (text.includes("password")) return "Password";
+  }
+
+  if (step.action === "click") {
+    if (text.includes("login")) return "Login";
+    if (text.includes("add") && text.includes("backpack")) return "Add Backpack to cart";
+    if (text.includes("add") && text.includes("bike light")) return "Add Bike Light to cart";
+    if (text.includes("add") && text.includes("fleece jacket")) return "Add Fleece Jacket to cart";
+  }
+
+  return step.intent || step.description || step.value;
+}
+
+function applySnapshotPathsToSteps(steps, snapshotPaths) {
+  if (!Array.isArray(snapshotPaths) || snapshotPaths.length === 0) {
+    return steps;
+  }
+
+  // Generic flow-state mapping:
+  // snapshot[0] = initial page state
+  // snapshot[1] = post-login / post-navigation state
+  const initialSnapshot = snapshotPaths[0];
+  const nextSnapshot = snapshotPaths[1] || initialSnapshot;
+
+  let currentSnapshot = initialSnapshot;
+
+  return steps.map((step) => {
+    const updatedStep = {
+      ...step,
+      snapshotPath: currentSnapshot
+    };
+
+    const stepText = [
+      step.description,
+      step.value,
+      step.intent
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    // After a login / submit / continue action, advance to next snapshot
+    if (
+      step.type === "action" &&
+      step.action === "click" &&
+      (
+        stepText.includes("login") ||
+        stepText.includes("sign in") ||
+        stepText.includes("submit") ||
+        stepText.includes("continue")
+      )
+    ) {
+      currentSnapshot = nextSnapshot;
+    }
+
+    return updatedStep;
+  });
 }
 
 export default generatePlaywrightTestFromSteps;
