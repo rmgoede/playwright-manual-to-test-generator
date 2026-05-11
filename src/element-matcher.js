@@ -5,6 +5,12 @@ export function findBestMatch(candidates, intent) {
   const normalizedIntent = normalize(intent);
   const interactiveCandidates = candidates.filter(isInteractiveCandidate);
 
+  const checkboxMatch = findCheckboxMatch(
+    interactiveCandidates,
+    normalizedIntent
+  );
+  if (checkboxMatch) return checkboxMatch;
+  
   const productAddToCartMatch = findProductAddToCartMatch(
     interactiveCandidates,
     normalizedIntent
@@ -66,6 +72,48 @@ function allIntentWordsMatch(intent, value) {
   if (words.length === 0 || !value) return false;
 
   return words.every(word => value.includes(word));
+}
+
+function findCheckboxMatch(candidates, normalizedIntent) {
+  const checkboxCandidates = candidates.filter(c =>
+    c.tag === "input" &&
+    normalize(c.type) === "checkbox"
+  );
+
+  if (checkboxCandidates.length === 0) {
+    return null;
+  }
+
+  const wantsCheckbox =
+    normalizedIntent.includes("checkbox") ||
+    normalizedIntent.includes("check") ||
+    normalizedIntent.includes("uncheck");
+
+  if (!wantsCheckbox) {
+    return null;
+  }
+
+  // Ordinal handling
+  if (
+    normalizedIntent.includes("checkbox 1") ||
+    normalizedIntent.includes("first checkbox")
+  ) {
+    return checkboxCandidates[0] || null;
+  }
+
+  if (
+    normalizedIntent.includes("checkbox 2") ||
+    normalizedIntent.includes("second checkbox")
+  ) {
+    return checkboxCandidates[1] || null;
+  }
+
+  // Default to first checkbox if only one exists
+  if (checkboxCandidates.length === 1) {
+    return checkboxCandidates[0];
+  }
+
+  return checkboxCandidates[0] || null;
 }
 
 function findProductAddToCartMatch(candidates, normalizedIntent) {

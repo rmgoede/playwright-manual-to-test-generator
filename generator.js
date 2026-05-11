@@ -385,29 +385,68 @@ ${stepsText}
   }
 
   if (
-    step.type === "action" &&
-    step.action !== "goto" &&
-    step.snapshotPath
+  step.type === "action" &&
+  step.action !== "goto" &&
+  step.snapshotPath
+) {
+  const candidates = parseSnapshot(step.snapshotPath);
+  const intent = deriveIntentFromStep(step);
+
+  const shouldForceSnapshotResolution =
+    step.action === "check" ||
+    step.action === "uncheck";
+
+  const match = findBestMatch(candidates, intent);
+
+  if (match) {
+  let selector = resolveSelector(match);
+
+  // Generic ordinal checkbox handling
+  if (
+    (step.action === "check" || step.action === "uncheck") &&
+    selector?.strategy === "css"
   ) {
+    const stepText = String(step.description || "").toLowerCase();
 
-    const candidates = parseSnapshot(step.snapshotPath);
-    const intent = deriveIntentFromStep(step);
-
-    const match = findBestMatch(candidates, intent);
-
-    if (match) {
-      const selector = resolveSelector(match);
-      return {
-        ...step,
-        selector
+    if (
+      stepText.includes("checkbox 1") ||
+      stepText.includes("first checkbox")
+    ) {
+      selector = {
+        ...selector,
+        index: 0
       };
     }
 
+    if (
+      stepText.includes("checkbox 2") ||
+      stepText.includes("second checkbox")
+    ) {
+      selector = {
+        ...selector,
+        index: 1
+      };
+    }
+  }
+
+  return {
+    ...step,
+    selector
+  };
+}
+
+  if (shouldForceSnapshotResolution) {
     return {
       ...step,
       selector: null
     };
   }
+
+  return {
+    ...step,
+    selector: null
+  };
+}
 
   return step;
 });
@@ -480,7 +519,17 @@ function deriveIntentFromStep(step) {
     if (text.includes("username")) return "Username";
     if (text.includes("password")) return "Password";
   }
+  if (
+  step.action === "check" ||
+  step.action === "uncheck"
+) {
+  if (text.includes("checkbox 1")) return "checkbox 1";
+  if (text.includes("checkbox 2")) return "checkbox 2";
+  if (text.includes("first checkbox")) return "first checkbox";
+  if (text.includes("second checkbox")) return "second checkbox";
 
+  return "checkbox";
+  }
   if (step.action === "click") {
     if (text.includes("login")) return "Login";
     if (text.includes("add") && text.includes("backpack")) return "Add Backpack to cart";

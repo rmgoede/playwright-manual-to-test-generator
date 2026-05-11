@@ -19,17 +19,18 @@ export function parseSnapshot(snapshotPath) {
   const html = fs.readFileSync(snapshotPath, "utf-8");
   const $ = cheerio.load(html);
 
+  removeInjectedNoise($);
+
   const candidates = [];
 
   $("button, a, input, textarea, select").each((_, el) => {
-  const element = $(el);
+    const element = $(el);
 
-  if (shouldIgnoreElement(el, element)) {
-    return;
-  }
+    if (shouldIgnoreElement(el, element)) {
+      return;
+    }
 
-  candidates.push({
-    
+    candidates.push({
       tag: el.tagName?.toLowerCase() || "",
       text: normalizeText(element.text()),
       role: element.attr("role") || null,
@@ -47,6 +48,22 @@ export function parseSnapshot(snapshotPath) {
   return candidates.filter(isUsefulCandidate);
 }
 
+function removeInjectedNoise($) {
+  // Remove known browser-extension injected containers/scripts.
+  // This is generic snapshot hygiene, not application-specific logic.
+  $('[src^="chrome-extension://"]').remove();
+  $('[href^="chrome-extension://"]').remove();
+
+  $('#aitopia').remove();
+  $('[id*="aitopia"]').remove();
+  $('[class*="aitopia"]').remove();
+  $('[class^="ait-"]').remove();
+  $('[class*=" ait-"]').remove();
+
+  $('[id^="headlessui-"]').remove();
+  $('[data-headlessui-state]').remove();
+}
+
 function normalizeText(value) {
   return String(value || "")
     .replace(/\s+/g, " ")
@@ -61,7 +78,9 @@ function isUsefulCandidate(candidate) {
       candidate.name ||
       candidate.placeholder ||
       candidate.ariaLabel ||
-      candidate.text
+      candidate.text ||
+      candidate.type === "checkbox" ||
+      candidate.type === "radio"
   );
 }
 function shouldIgnoreElement(el, element) {
@@ -88,11 +107,12 @@ function shouldIgnoreElement(el, element) {
   }
 
   if (
-    id.startsWith("headlessui-") ||
-    id.includes("ait-") ||
-    testId.includes("headlessui")
-  ) {
-    return true;
+  id.startsWith("headlessui-") ||
+  id.includes("ait-") ||
+  id.includes("aitopia") ||
+  testId.includes("headlessui")
+) {
+  return true;
   }
 
   return false;
@@ -120,6 +140,14 @@ function buildCssCandidate(el, element) {
   if (element.attr("placeholder")) {
     return `${tag}[placeholder="${element.attr("placeholder")}"]`;
   }
+  if (tag === "input" && element.attr("type")) {
+  const parentFormId = element.closest("form").attr("id");
 
+  if (parentFormId) {
+    return `#${parentFormId} input[type="${element.attr("type")}"]`;
+  }
+
+  return `input[type="${element.attr("type")}"]`;
+  }
   return tag;
 }
