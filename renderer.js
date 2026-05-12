@@ -173,7 +173,20 @@ export function renderPlaywrightTestFromSchema(schema) {
           );
         }
       }
+        if (assertion?.method === "rowContainsText" && assertion.selector) {
+        const locator = renderLocator(assertion.selector);
+        const expectedTokens = Array.isArray(assertion.expected)
+          ? assertion.expected
+          : [assertion.expected];
 
+        if (locator) {
+          const filteredLocator = expectedTokens.reduce((current, token) => {
+            return `${current}.filter({ hasText: ${quote(token)} })`;
+          }, locator);
+
+          lines.push(`  await expect(${filteredLocator}.first()).toBeVisible();`);
+        }
+      }
       if (assertion?.method === "toBeVisible" && assertion.selector) {
         const locator = renderLocator(assertion.selector);
         if (locator) {

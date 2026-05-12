@@ -467,6 +467,37 @@ function mapAssertionStep(step) {
     .join(" ")
     .toLowerCase();
 
+  if (
+    stepText.includes("table contains") ||
+    stepText.includes("verify table contains")
+  ) {
+    const rawText = String(step.description || "")
+      .replace(/verify/i, "")
+      .replace(/table contains/i, "")
+      .trim();
+
+    const expectedTokens = rawText
+      .split(/\s+/)
+      .map(token => token.trim())
+      .filter(Boolean);
+
+    return {
+      ...step,
+      type: "assertion",
+      action: null,
+      value: null,
+      selector: null,
+      assertion: {
+        method: "rowContainsText",
+        expected: expectedTokens,
+        selector: {
+          strategy: "css",
+          value: "tbody tr"
+        }
+      }
+    };
+  }
+
   if (stepText.includes("secure area")) {
     return {
       ...step,
