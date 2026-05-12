@@ -153,10 +153,10 @@ export function renderPlaywrightTestFromSchema(schema) {
       }
 
       if (step.action === "select") {
-        const selector = resolvedSelector;
-        if (selector?.strategy === "role" && selector.value === "combobox") {
+        const locator = renderLocator(resolvedSelector);
+        if (locator) {
           lines.push(
-            `  await page.getByRole('combobox').selectOption({ label: ${quote(step.value)} });`
+            `  await ${locator}.selectOption({ label: ${quote(step.value)} });`
           );
         }
       }

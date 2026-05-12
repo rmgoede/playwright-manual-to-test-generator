@@ -519,6 +519,9 @@ function deriveIntentFromStep(step) {
     if (text.includes("username")) return "Username";
     if (text.includes("password")) return "Password";
   }
+  if (step.action === "select") {
+  return "dropdown";
+  }
   if (
   step.action === "check" ||
   step.action === "uncheck"
