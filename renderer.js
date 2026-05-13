@@ -22,6 +22,10 @@ function renderLocator(selector) {
     base = `page.getByLabel(${quote(selector.value)})`;
   }
 
+  if (selector.strategy === "placeholder") {
+    base = `page.getByPlaceholder(${quote(selector.value)})`;
+  }
+
   if (selector.strategy === "role") {
     base = `page.getByRole(${quote(selector.value)})`;
   }
