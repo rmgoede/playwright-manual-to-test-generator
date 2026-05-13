@@ -43,3 +43,6 @@ dom-snapshot-spike.js
 sample-snapshot.html
 schema-resolver-spike.js
 generator-schema-spike.js
+
+# POL Snapshot due to embedded secrets/tokens
+snapshots/pol-outfitter-form.html
