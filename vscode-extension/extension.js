@@ -589,8 +589,8 @@ function activate(context) {
       });
 
       if (result && result.length > 0) {
-        snapshotPaths.push(...result.map(uri => uri.fsPath));
-        vscode.window.showInformationMessage(`${result.length} snapshot file(s) selected`);
+        snapshotPaths = result.map(uri => uri.fsPath);
+        vscode.window.showInformationMessage(`${snapshotPaths.length} snapshot file(s) selected`);
         panel.webview.postMessage({ command: 'snapshotReady' });
       }
     }
