@@ -37,6 +37,7 @@ function scoreCandidate(candidate, normalizedIntent) {
   const id = normalize(candidate.id);
   const name = normalize(candidate.name);
   const ariaLabel = normalize(candidate.ariaLabel);
+  const type = normalize(candidate.type);
 
   if (text === normalizedIntent) score += 100;
   if (placeholder === normalizedIntent) score += 95;
@@ -57,6 +58,16 @@ function scoreCandidate(candidate, normalizedIntent) {
   if (allIntentWordsMatch(normalizedIntent, text)) score += 20;
   if (allIntentWordsMatch(normalizedIntent, placeholder)) score += 20;
 
+  score += tokenOverlapScore(normalizedIntent, id) * 20;
+  score += tokenOverlapScore(normalizedIntent, placeholder) * 15;
+  score += tokenOverlapScore(normalizedIntent, testId) * 15;
+  score += tokenOverlapScore(normalizedIntent, name) * 10;
+  score += tokenOverlapScore(normalizedIntent, ariaLabel) * 10;
+  score += tokenOverlapScore(normalizedIntent, text) * 10;
+
+  if (normalizedIntent.includes("email") && type === "email") score += 60;
+  if (normalizedIntent.includes("address") && candidate.tag === "textarea") score += 15;
+
   if (candidate.tag === "button") score += 5;
   if (candidate.tag === "input") score += 5;
 
@@ -72,6 +83,22 @@ function allIntentWordsMatch(intent, value) {
   if (words.length === 0 || !value) return false;
 
   return words.every(word => value.includes(word));
+
+}
+function tokenOverlapScore(intent, value) {
+  const intentWords = intent
+    .split(" ")
+    .map(w => w.trim())
+    .filter(Boolean);
+
+  const valueWords = value
+    .split(" ")
+    .map(w => w.trim())
+    .filter(Boolean);
+
+  if (intentWords.length === 0 || valueWords.length === 0) return 0;
+
+  return valueWords.filter(word => intentWords.includes(word)).length;
 }
 
 function findCheckboxMatch(candidates, normalizedIntent) {
@@ -150,6 +177,8 @@ function isInteractiveCandidate(candidate) {
 
 function normalize(value) {
   return String(value || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
